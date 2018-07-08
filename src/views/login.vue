@@ -12,7 +12,7 @@
       <el-form-item label="密码">
         <el-input type="password" v-model="formData.password"></el-input>
       </el-form-item>
-      <el-button type="primary" class="login-btn">登录</el-button>
+      <el-button type="primary" @click="handelLogin" class="login-btn">登录</el-button>
     </el-form>
   </div>
 </template>
@@ -26,6 +26,41 @@ export default {
         password: ''
       }
     };
+  },
+  methods: {
+    async handelLogin() {
+      const res = await this.$http.post('login', this.formData);
+      // console.log(res);
+      const data = res.data;
+      const {meta: {msg, status}} = data;
+      if (status === 200) {
+        const {data: {token}} = data;
+        sessionStorage.getItem('token', token);
+        this.$message.success(msg);
+        // 跳转首页
+        this.$router.push({name: 'home'});
+      } else {
+        this.$message.error(msg);
+      }
+    }
+    // handelLogin() {
+    //   this.$http
+    //     .post('login', this.formData)
+    //     .then((res) => {
+    //       console.log(res);
+    //       const {meta: {msg, status}} = res.data;
+    //       if (status === 200) {
+    //         // 登录成功
+    //         // 记录session
+    //         const { data: { token } } = res.data;
+    //         sessionStorage.getItem('token', token);
+    //         // 提示
+    //         this.$message.success(msg);
+    //       } else {
+    //         this.$message.error(msg);
+    //       }
+    //     });
+    // }
   }
 };
 </script>
