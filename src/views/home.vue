@@ -109,6 +109,16 @@
 
 <script>
 export default {
+  // 判断是否登录
+  beforeCreate() {
+    // 获取session, 判断是否有session
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      this.$router.push({name: 'login'});
+      // 提示
+      this.$message.warning('请先登录!');
+    }
+  },
   methods: {
     async handleLoginout() {
       // 删除session, 跳转到登录页面
