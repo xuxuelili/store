@@ -35,7 +35,7 @@ export default {
       const {meta: {msg, status}} = data;
       if (status === 200) {
         const {data: {token}} = data;
-        sessionStorage.getItem('token', token);
+        sessionStorage.setItem('token', token);
         this.$message.success(msg);
         // 跳转首页
         this.$router.push({name: 'home'});
