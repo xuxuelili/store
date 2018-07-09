@@ -61,6 +61,9 @@
       <el-table-column
         prop="create_time"
         label="注册时间">
+        <template slot-scope="scope">
+          {{ scope.row.create_time | fmtDate('YYYY-MM-DD') }}
+        </template>
       </el-table-column>
       <el-table-column
         label="用户状态">
