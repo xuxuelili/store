@@ -32,7 +32,6 @@
       <el-button type="primary" @click="handleAdd">确 定</el-button>
     </div>
   </el-dialog>
-
 </div>
 <!-- 表格 -->
  <el-table
@@ -80,7 +79,8 @@
         label="操作">
         <template slot-scope="scope">
         <el-button type="primary" icon="el-icon-edit" plain size="mini"></el-button>
-        <el-button type="danger" icon="el-icon-delete" plain size="mini"></el-button>
+        <el-button type="danger" icon="el-icon-delete" plain size="mini" @click="handleDelete(scope.row.id)">
+        </el-button>
         <el-button type="success" icon="el-icon-check" plain size="mini"></el-button>
       </template>
       </el-table-column>
@@ -141,6 +141,35 @@ export default {
       } else {
         this.$message.error(msg);
       }
+    },
+    async handleDelete(id) {
+      // 提示用户是否删除
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        if (status === 200) {
+          // 刷新页面
+          // 提示
+          this.loadData();
+          this.$message.success(msg);
+        } else {
+          this.$message.error(msg);
+        }
+        // this.$message({
+        //   type: 'success',
+        //   message: '删除成功!'
+        // });
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除!'
+        });
+      });
+      const res = await this.$http.delete(`users/${id}`);
+      // console.log(res);
+      const {meta: {status, msg}} = res.data;
     }
   }
 };
