@@ -9,7 +9,7 @@
 <h2>电商后台管理系统</h2>
 </el-col>
 <el-col :span="1">
-<a href="#">退出</a>
+<a href="#" @click.prevent="handleLoginout">退出</a>
 </el-col>
 </el-row>
 </el-header>
@@ -109,6 +109,15 @@
 
 <script>
 export default {
+  methods: {
+    async handleLoginout() {
+      // 删除session, 跳转到登录页面
+      sessionStorage.clear();
+      this.$router.push({name: 'login'});
+      // 提示消息
+      this.$message.success('退出成功!');
+    }
+  }
 };
 </script>
 
