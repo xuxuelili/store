@@ -10,30 +10,9 @@
 <el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable style="width: 350px;">
 <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
 </el-input>
-  <el-button type="success" plain @click="dialogFormVisible = true">添加用户</el-button>
-
-  <el-dialog title="添加用户" :visible.sync="dialogFormVisible">
-    <el-form :model="formData" :rules="rules" ref="myref">
-      <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
-        <el-input v-model="formData.username" auto-complete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
-        <el-input v-model="formData.password" type="password" auto-complete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="邮箱" :label-width="formLabelWidth">
-        <el-input v-model="formData.email" auto-complete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="电话" :label-width="formLabelWidth">
-        <el-input v-model="formData.mobile" auto-complete="off"></el-input>
-      </el-form-item>
-    </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="dialogFormVisible = false">取 消</el-button>
-      <el-button type="primary" @click="handleAdd">确 定</el-button>
-    </div>
-  </el-dialog>
+  <el-button type="success" plain @click="addDialogVisible = true">添加用户</el-button>
 </div>
-<!-- 表格 -->
+    <!-- 表格 -->
   <el-table
     :data="list"
     border
@@ -79,7 +58,7 @@
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" plain size="mini"></el-button>
+          <el-button type="primary" icon="el-icon-edit" plain size="mini" @click="handleShowInfo(scope.row)"></el-button>
           <el-button type="danger" icon="el-icon-delete" plain size="mini" @click="handleDelete(scope.row.id)">
           </el-button>
           <el-button type="success" icon="el-icon-check" plain size="mini"></el-button>
@@ -97,6 +76,46 @@
       :total="total">
   </el-pagination>
 
+  <!-- 添加用户的对话框 -->
+  <el-dialog title="添加用户" :visible.sync="addDialogVisible">
+    <el-form :model="formData" :rules="rules" ref="myref">
+      <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
+        <el-input v-model="formData.username" auto-complete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
+        <el-input v-model="formData.password" type="password" auto-complete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="邮箱" :label-width="formLabelWidth">
+        <el-input v-model="formData.email" auto-complete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="电话" :label-width="formLabelWidth">
+        <el-input v-model="formData.mobile" auto-complete="off"></el-input>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="addDialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="handleAdd">确 定</el-button>
+    </div>
+  </el-dialog>
+
+  <!-- 修改用户的对话框 -->
+  <el-dialog title="修改用户" :visible.sync="editDialogVisible">
+    <el-form :model="formData" :rules="rules" ref="myref">
+      <el-form-item label="用户名" :label-width="formLabelWidth" prop="username" :v-model="editUserName">
+        <el-input v-model="formData.username" disabled auto-complete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="邮箱" :label-width="formLabelWidth">
+        <el-input v-model="formData.email" auto-complete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="电话" :label-width="formLabelWidth">
+        <el-input v-model="formData.mobile" auto-complete="off"></el-input>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="editDialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="handleEdit">确 定</el-button>
+    </div>
+  </el-dialog>
 </el-card>
 
 </template>
@@ -112,7 +131,7 @@ export default {
         email: '',
         mobile: ''
       },
-      dialogFormVisible: false,
+      addDialogVisible: false,
       formLabelWidth: '120px',
       pagenum: 1,
       pagesize: 2,
@@ -129,7 +148,10 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           { min: 3, max: 6, message: '长度在 3 到 6 个字符', trigger: 'blur' }
         ]
-      }
+      },
+      // 修改用户
+      editDialogVisible: false,
+      editUserName: ''
     };
   },
   created() {
@@ -169,7 +191,7 @@ export default {
         if (status === 201) {
           // 创建成功
           // 关闭弹出层
-          this.dialogFormVisible = false;
+          this.addDialogVisible = false;
           // 清空input
           for (let key in this.formData) {
             this.formData[key] = '';
@@ -238,6 +260,39 @@ export default {
         this.$message.success(msg);
       } else {
         this.$message.error(msg);
+      }
+    },
+    // 展示修改表单信息
+    handleShowInfo (user) {
+      this.editDialogVisible = true;
+      // this.formData = user;
+      // 解决点击取消按钮input输入框跟着变的问题
+      this.formData.username = user.username;
+      this.formData.email = user.email;
+      this.formData.mobile = user.mobile;
+      this.formData.id = user.id;
+    },
+    // 修改用户信息
+    async handleEdit() {
+      // console.log(this.formData);
+      const res = await this.$http.put(`users/${this.formData.id}`, {
+        mobile: this.formData.mobile,
+        email: this.formData.email
+      });
+      console.log(res);
+      const {meta: {status, msg}} = res.data;
+      if (status === 200) {
+        // 更新成功
+        // 提示
+        this.$message.success(msg);
+        // 关闭会话框
+        this.editDialogVisible = false;
+        // 重新加载列表
+        this.loadData();
+        // 清空文本框
+        for (let key in this.formData) {
+          this.formData[key] = '';
+        }
       }
     }
   }
