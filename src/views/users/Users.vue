@@ -146,7 +146,10 @@ export default {
       const {meta: {msg, status}, data: {users}} = res.data;
       if (status === 200) {
         // 获取数据成功
+        // console.log(res.data);
+        const {data: {total}} = res.data;
         this.list = users;
+        this.total = total;
       } else {
         this.$message.error(msg);
       }
