@@ -7,8 +7,8 @@
     </el-breadcrumb>
 <!-- 搜索框 -->
 <div style="margin-top: 15px; border: none;">
-<el-input placeholder="请输入内容" class="input-with-select" clearable style="width: 350px;">
-<el-button slot="append" icon="el-icon-search"></el-button>
+<el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable style="width: 350px;">
+<el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
 </el-input>
   <el-button type="success" plain @click="dialogFormVisible = true">添加用户</el-button>
 
@@ -115,7 +115,9 @@ export default {
       formLabelWidth: '120px',
       pagenum: 1,
       pagesize: 2,
-      total: 0
+      total: 0,
+      // 搜索框
+      searchInput: ''
     };
   },
   created() {
@@ -127,7 +129,7 @@ export default {
       const token = sessionStorage.getItem('token');
       // 在请求头中设置token
       this.$http.defaults.headers.common['Authorization'] = token;
-      const res = await this.$http.get(`users?pagenum=${this.pagenum}&pagesize=${this.pagesize}&total=${this.total}`);
+      const res = await this.$http.get(`users?pagenum=${this.pagenum}&pagesize=${this.pagesize}&query=${this.searchInput}`);
       // console.log(res);
       const {meta: {msg, status}, data: {users}} = res.data;
       if (status === 200) {
@@ -194,6 +196,11 @@ export default {
     handleCurrentChange(val) {
       // 页码发生改变的时候
       this.pagenum = val;
+      this.loadData();
+    },
+    // 点击搜索按钮时候出发
+    handleSearch () {
+      // 带上查询参数
       this.loadData();
     }
   }
