@@ -13,11 +13,11 @@
   <el-button type="success" plain @click="dialogFormVisible = true">添加用户</el-button>
 
   <el-dialog title="添加用户" :visible.sync="dialogFormVisible">
-    <el-form :model="formData">
-      <el-form-item label="用户名" :label-width="formLabelWidth">
+    <el-form :model="formData" :rules="rules" ref="myref">
+      <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
         <el-input v-model="formData.username" auto-complete="off"></el-input>
       </el-form-item>
-      <el-form-item label="密码" :label-width="formLabelWidth">
+      <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
         <el-input v-model="formData.password" type="password" auto-complete="off"></el-input>
       </el-form-item>
       <el-form-item label="邮箱" :label-width="formLabelWidth">
@@ -118,7 +118,18 @@ export default {
       pagesize: 2,
       total: 0,
       // 搜索框
-      searchInput: ''
+      searchInput: '',
+      // 添加用户表单验证
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 6, message: '长度在 3 到 6 个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 3, max: 6, message: '长度在 3 到 6 个字符', trigger: 'blur' }
+        ]
+      }
     };
   },
   created() {
@@ -141,24 +152,33 @@ export default {
       }
     },
     async handleAdd() {
-      // 获取到input的内容
-      this.formData.mg_time = new Date();
-      const res = await this.$http.post('users', this.formData);
-      // console.log(res);
-      const {meta: {msg, status}} = res.data;
-      if (status === 201) {
-        // 创建成功
-        // 关闭弹出层
-        this.dialogFormVisible = false;
-        // 清空input
-        this.formData = {};
-        // 刷新页面
-        this.loadData();
-        // 提示信息
-        this.$message.success(msg);
-      } else {
-        this.$message.error(msg);
-      }
+      // 验证表单
+      // console.log(this.$refs);
+      this.$refs.myref.validate(async (valid) => {
+        if (!valid) {
+          return this.$message.error('请完整填写表单!');
+        }
+        // 获取到input的内容
+        this.formData.mg_time = new Date();
+        const res = await this.$http.post('users', this.formData);
+        // console.log(res);
+        const {meta: {msg, status}} = res.data;
+        if (status === 201) {
+          // 创建成功
+          // 关闭弹出层
+          this.dialogFormVisible = false;
+          // 清空input
+          for (let key in this.formData) {
+            this.formData[key] = '';
+          }
+          // 刷新页面
+          this.loadData();
+          // 提示信息
+          this.$message.success(msg);
+        } else {
+          this.$message.error(msg);
+        }
+      });
     },
     async handleDelete(id) {
       // 提示用户是否删除
