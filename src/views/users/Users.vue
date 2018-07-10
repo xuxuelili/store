@@ -71,7 +71,8 @@
           <el-switch
             v-model="scope.row.mg_state"
             active-color="#13ce66"
-            inactive-color="#ff4949">
+            inactive-color="#ff4949"
+            @change="handleChangeStatus(scope.row)">
           </el-switch>
         </template>
       </el-table-column>
@@ -202,6 +203,19 @@ export default {
     handleSearch () {
       // 带上查询参数
       this.loadData();
+    },
+    // 用户状态发生改变的时候触发
+    async handleChangeStatus(user) {
+      // console.log(user);
+      const res = await this.$http.put(`users/${user.id}/state/${user.mg_state}`);
+      const {meta: {status, msg}} = res.data;
+      if (status === 200) {
+        // 修改成功
+        // 提示
+        this.$message.success(msg);
+      } else {
+        this.$message.error(msg);
+      }
     }
   }
 };
