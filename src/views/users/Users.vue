@@ -34,14 +34,14 @@
   </el-dialog>
 </div>
 <!-- 表格 -->
- <el-table
-      :data="list"
-      border
-      class="user-table"
-      style="width: 100%">
-       <el-table-column
-        type="index"
-        width="50">
+  <el-table
+    :data="list"
+    border
+    class="user-table"
+    style="width: 100%">
+      <el-table-column
+          type="index"
+          width="50">
       </el-table-column>
       <el-table-column
         prop="username"
@@ -69,23 +69,35 @@
         <template slot-scope="scope">
           <!-- scope-row就是当前行绑定的数据对象 -->
           <el-switch
-          v-model="scope.row.mg_state"
-          active-color="#13ce66"
-          inactive-color="#ff4949">
-        </el-switch>
+            v-model="scope.row.mg_state"
+            active-color="#13ce66"
+            inactive-color="#ff4949">
+          </el-switch>
         </template>
       </el-table-column>
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-        <el-button type="primary" icon="el-icon-edit" plain size="mini"></el-button>
-        <el-button type="danger" icon="el-icon-delete" plain size="mini" @click="handleDelete(scope.row.id)">
-        </el-button>
-        <el-button type="success" icon="el-icon-check" plain size="mini"></el-button>
-      </template>
+          <el-button type="primary" icon="el-icon-edit" plain size="mini"></el-button>
+          <el-button type="danger" icon="el-icon-delete" plain size="mini" @click="handleDelete(scope.row.id)">
+          </el-button>
+          <el-button type="success" icon="el-icon-check" plain size="mini"></el-button>
+        </template>
       </el-table-column>
     </el-table>
+  <!-- 分页 -->
+  <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pagenum"
+      :page-sizes="[2, 4, 6, 8]"
+      :page-size="pagesize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+  </el-pagination>
+
 </el-card>
+
 </template>
 
 <script>
@@ -100,7 +112,10 @@ export default {
         mobile: ''
       },
       dialogFormVisible: false,
-      formLabelWidth: '120px'
+      formLabelWidth: '120px',
+      pagenum: 1,
+      pagesize: 2,
+      total: 0
     };
   },
   created() {
@@ -112,7 +127,7 @@ export default {
       const token = sessionStorage.getItem('token');
       // 在请求头中设置token
       this.$http.defaults.headers.common['Authorization'] = token;
-      const res = await this.$http.get('users?pagenum=1&pagesize=10');
+      const res = await this.$http.get(`users?pagenum=${this.pagenum}&pagesize=${this.pagesize}&total=${this.total}`);
       // console.log(res);
       const {meta: {msg, status}, data: {users}} = res.data;
       if (status === 200) {
@@ -123,8 +138,6 @@ export default {
       }
     },
     async handleAdd() {
-      // 关闭弹出层
-      this.dialogFormVisible = false;
       // 获取到input的内容
       this.formData.mg_time = new Date();
       const res = await this.$http.post('users', this.formData);
@@ -132,6 +145,8 @@ export default {
       const {meta: {msg, status}} = res.data;
       if (status === 201) {
         // 创建成功
+        // 关闭弹出层
+        this.dialogFormVisible = false;
         // 清空input
         this.formData = {};
         // 刷新页面
@@ -148,7 +163,10 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
+        const res = await this.$http.delete(`users/${id}`);
+        // console.log(res);
+        const {meta: {status, msg}} = res.data;
         if (status === 200) {
           // 刷新页面
           // 提示
@@ -167,9 +185,16 @@ export default {
           message: '已取消删除!'
         });
       });
-      const res = await this.$http.delete(`users/${id}`);
-      // console.log(res);
-      const {meta: {status, msg}} = res.data;
+    },
+    handleSizeChange(val) {
+      // 页面条数发生改变的时候
+      this.pagesize = val;
+      this.loadData();
+    },
+    handleCurrentChange(val) {
+      // 页码发生改变的时候
+      this.pagenum = val;
+      this.loadData();
     }
   }
 };
