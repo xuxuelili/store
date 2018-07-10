@@ -77,7 +77,7 @@
   </el-pagination>
 
   <!-- 添加用户的对话框 -->
-  <el-dialog title="添加用户" :visible.sync="addDialogVisible">
+  <el-dialog title="添加用户" :visible.sync="addDialogVisible" @closed="handleClosed">
     <el-form :model="formData" :rules="rules" ref="myref">
       <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
         <el-input v-model="formData.username" auto-complete="off"></el-input>
@@ -99,7 +99,7 @@
   </el-dialog>
 
   <!-- 修改用户的对话框 -->
-  <el-dialog title="修改用户" :visible.sync="editDialogVisible">
+  <el-dialog title="修改用户" :visible.sync="editDialogVisible" @closed="handleClosed">
     <el-form :model="formData" :rules="rules" ref="myref">
       <el-form-item label="用户名" :label-width="formLabelWidth" prop="username" :v-model="editUserName">
         <el-input v-model="formData.username" disabled auto-complete="off"></el-input>
@@ -293,6 +293,12 @@ export default {
         for (let key in this.formData) {
           this.formData[key] = '';
         }
+      }
+    },
+    // 添加和修改的的对话框关闭以后执行
+    handleClosed () {
+      for (let key in this.formData) {
+        this.formData[key] = '';
       }
     }
   }
