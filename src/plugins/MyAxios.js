@@ -12,7 +12,7 @@ MyAxios.install = function (Vue) {
     // Do something before request is sent
     // console.log(config.headers);
     // console.log(config.url);
-    if (!config.url.toLocaleLowerCase() === 'login') {
+    if (config.url.toLocaleLowerCase() !== 'login') {
       // 设置token
       const token = sessionStorage.getItem('token');
       config.headers.Authorization = token;
