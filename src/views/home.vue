@@ -22,80 +22,25 @@
       unique-opened
       :router="true"
       class="el-menu-vertical-demo">
-      <el-submenu index="1">
+      <!-- 一级菜单 -->
+      <el-submenu
+        :index="item.id + ''"
+        v-for="item in menus"
+        :key="item.id">
         <template slot="title">
           <i class="el-icon-location"></i>
-          <span>用户管理</span>
+          <span> {{ item.authName }} </span>
         </template>
-        <el-menu-item index="/users">
+        <!-- 二级菜单 -->
+        <el-menu-item
+          :index="'/' + item1.path"
+          v-for="item1 in item.children"
+          :key="item1.id">
           <i class="el-icon-menu"></i>
-          用户列表
+          {{ item1.authName }}
         </el-menu-item>
       </el-submenu>
-<el-submenu index="2">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span>权限管理</span>
-        </template>
-          <el-menu-item index="/roles">
-            <i class="el-icon-menu"></i>
-            角色列表
-          </el-menu-item>
-        <el-menu-item-group>
-          <el-menu-item index="/rights">
-            <i class="el-icon-menu"></i>
-            权限列表
-          </el-menu-item>
-        </el-menu-item-group>
-      </el-submenu>
-<el-submenu index="3">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span>商品管理</span>
-        </template>
-        <el-menu-item-group>
-          <el-menu-item index="3-1">
-            <i class="el-icon-menu"></i>
-            商品列表
-          </el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group>
-          <el-menu-item index="3-2">
-            <i class="el-icon-menu"></i>
-            分类参数
-          </el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group>
-          <el-menu-item index="3-3">
-            <i class="el-icon-menu"></i>
-            商品分类
-          </el-menu-item>
-        </el-menu-item-group>
-      </el-submenu>
-<el-submenu index="4">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span>订单管理</span>
-        </template>
-        <el-menu-item-group>
-          <el-menu-item index="4-1">
-            <i class="el-icon-menu"></i>
-            订单列表
-          </el-menu-item>
-        </el-menu-item-group>
-      </el-submenu>
-<el-submenu index="5">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span>数据统计</span>
-        </template>
-        <el-menu-item-group>
-          <el-menu-item index="5-1">
-            <i class="el-icon-menu"></i>
-            数据报表
-          </el-menu-item>
-        </el-menu-item-group>
-      </el-submenu>
+
     </el-menu>
 
 </el-aside>
@@ -109,6 +54,11 @@
 
 <script>
 export default {
+  data() {
+    return {
+      menus: []
+    };
+  },
   // 判断是否登录
   beforeCreate() {
     // 获取session, 判断是否有session
@@ -119,7 +69,19 @@ export default {
       this.$message.warning('请先登录!');
     }
   },
+  created() {
+    this.loadData();
+  },
   methods: {
+    async loadData () {
+      const {data: resData} = await this.$http.get('menus');
+      const {data, meta: {status, msg}} = resData;
+      if (status === 200) {
+        this.menus = data;
+      } else {
+        this.$message.error(msg);
+      }
+    },
     async handleLoginout() {
       // 删除session, 跳转到登录页面
       sessionStorage.clear();
