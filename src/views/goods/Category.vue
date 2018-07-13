@@ -8,7 +8,7 @@
     </el-breadcrumb>
     <el-row class="row-add">
       <el-col :span="24">
-        <el-button type="success" plain>添加分类</el-button>
+        <el-button type="success" plain @click="handleShowAdd">添加分类</el-button>
       </el-col>
     </el-row>
 
@@ -67,6 +67,35 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="total">
     </el-pagination>
+
+    <!-- 添加分类的对话框 -->
+    <el-dialog title="添加商品分类" :visible.sync="addDialogForm">
+      <el-form :model="addForm" ref="myAddRef">
+        <el-form-item label="分类名称" label-width="80px">
+          <el-input v-model="addForm.cat_name" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="分类名称" label-width="80px">
+          <!-- 级联选择器 -->
+          <!-- props=>可选项数据源，键名可通过 props 属性配置
+            selectedOptions2 => 用来获取级联选择器的节点-->
+          <el-cascader
+            expand-trigger="hover"
+            change-on-select
+            :options="options"
+            v-model="selectedOptions2"
+            :props="{
+              label: 'cat_name',
+              value: 'cat_id',
+              children: 'children'
+            }">
+          </el-cascader>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addDialogForm = false">取 消</el-button>
+        <el-button type="primary" @click="handleAdd">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -84,7 +113,17 @@ export default {
       // 分页数据
       pagenum: 1,
       pagesize: 5,
-      total: 0
+      total: 0,
+      // 添加分类的对话框
+      addDialogForm: false,
+      addForm: {
+        cat_pid: 0,
+        cat_name: '',
+        cat_level: 0
+      },
+      props: [],
+      options: [],
+      selectedOptions2: []
     };
   },
   created() {
@@ -107,12 +146,12 @@ export default {
     handleSizeChange(val) {
       this.pagesize = val;
       this.loadData();
-      console.log(`每页 ${val} 条`);
+      // console.log(`每页 ${val} 条`);
     },
     handleCurrentChange(val) {
       this.pagenum = val;
       this.loadData();
-      console.log(`当前页: ${val}`);
+      // console.log(`当前页: ${val}`);
     },
     // 删除事件
     async handleDelete(rot) {
@@ -144,6 +183,48 @@ export default {
           message: '已取消删除'
         });
       });
+    },
+    // 点击添加分类按钮
+    async handleShowAdd() {
+      // 获取所有分类
+      this.addDialogForm = true;
+      const res = await this.$http.get('categories?type=2');
+      // console.log(res);
+      const {data, meta: {status, msg}} = res.data;
+      if (status === 200) {
+        // 获取数据成功
+        // 展示数据到级联选择器
+        this.options = data;
+      } else {
+        this.$message.error(msg);
+      }
+    },
+    // 添加分类事件
+    async handleAdd() {
+      const addForm = {
+        ...this.addForm,
+        cat_pid: this.selectedOptions2[this.selectedOptions2.length - 1],
+        cat_level: this.selectedOptions2.length
+      };
+      // console.log(addForm);
+      const res = await this.$http.post('/categories', addForm);
+      // console.log(res);
+      const {meta: {status, msg}} = res.data;
+      if (status === 201) {
+        // 添加成功
+        // 提示
+        this.$message.success(msg);
+        // 刷新页面
+        this.loadData();
+        // 关闭会话层
+        this.addDialogForm = false;
+        // 清空
+        this.selectedOptions2 = [];
+        this.$refs['myAddRef'].resetFields();
+      } else {
+        // 添加失败
+        this.$message.error(msg);
+      }
     }
   },
   components: {
