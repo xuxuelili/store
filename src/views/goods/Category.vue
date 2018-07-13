@@ -1,26 +1,38 @@
 <template>
   <el-card class="box-card">
+    <!-- 面包屑 -->
     <el-breadcrumb separator-class="el-icon-arrow-right">
     <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
     <el-breadcrumb-item>商品管理</el-breadcrumb-item>
     <el-breadcrumb-item>商品分类</el-breadcrumb-item>
     </el-breadcrumb>
-    <el-button type="success" plain size="mini" class="cate-btn">
-      添加分类
-    </el-button>
-      <!-- 表格 -->
+    <el-row class="row-add">
+      <el-col :span="24">
+        <el-button type="success" plain>添加分类</el-button>
+      </el-col>
+    </el-row>
+
+    <!-- 表格 -->
     <el-table
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+      v-loading="loading"
+      stripe
       border
-      height="600"
       :data="list"
       style="width: 100%">
-      <el-table-column
+      <el-tree-grid
         prop="cat_name"
         label="分类名称"
-        width="350">
-      </el-table-column>
+        treeKey="cat_id"
+        parentKey="cat_pid"
+        levelKey="cat_level"
+        childKey="children"
+        :indentSize="30">
+      </el-tree-grid>
+      <!-- <el-table-column
+        prop="cat_name"
+        label="分类名称"
+        width="180">
+      </el-table-column> -->
       <el-table-column
         label="级别"
         width="180">
@@ -31,41 +43,47 @@
         </template>
       </el-table-column>
       <el-table-column
-        label="是否有效"
-        width="180">
+        label="是否有效">
         <template slot-scope="scope">
-          {{ scope.row.cat_deleted ? '无效':'有效' }}
+          {{ scope.row.cat_deleted ? '无效' : '有效' }}
         </template>
       </el-table-column>
-     <el-table-column
+      <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" plain size="mini"></el-button>
-          <el-button type="danger" icon="el-icon-delete" plain size="mini">
-          </el-button>
+          <el-button plain size="mini" type="primary" icon="el-icon-edit" ></el-button>
+          <el-button plain size="mini" type="danger" icon="el-icon-delete" ></el-button>
         </template>
       </el-table-column>
     </el-table>
+
     <!-- 分页 -->
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page="currentPage"
-      :page-sizes="[10, 20, 30, 40]"
-      :page-size="currentSize"
+      :current-page.sync="pagenum"
+      :page-sizes="[5, 10, 15, 20]"
+      :page-size="pagesize"
       layout="total, sizes, prev, pager, next, jumper"
-      :total=total>
+      :total="total">
     </el-pagination>
   </el-card>
 </template>
 
 <script>
+// 1. npm install element-tree-grid
+// 2. 引入组件
+// 3. 局部注册组件
+import ElTreeGrid from 'element-tree-grid';
+
 export default {
   data() {
     return {
       list: [],
-      currentPage: 1,
-      currentSize: 10,
+      loading: true,
+      // 分页数据
+      pagenum: 1,
+      pagesize: 5,
       total: 0
     };
   },
@@ -73,22 +91,32 @@ export default {
     this.loadData();
   },
   methods: {
+    // 加载列表数据
     async loadData() {
-      const {data: resData} = await this.$http.get(`categories?type=3&pagenum=${this.currentPage}&pagesize=${this.currentSize}`);
-      const {data: {result, total}} = resData;
-      console.log(resData);
+      this.loading = true;
+      const { data: resData } = await this.$http.get(`categories?type=3&pagenum=${this.pagenum}&pagesize=${this.pagesize}`);
+
+      this.loading = false;
+
+      const { data: { result, total } } = resData;
       this.list = result;
-      // console.log(data);
+      // 获取总条数
       this.total = total;
     },
+    // 分页方法
     handleSizeChange(val) {
-      this.currentSize = val;
+      this.pagesize = val;
       this.loadData();
+      console.log(`每页 ${val} 条`);
     },
     handleCurrentChange(val) {
-      this.currentPage = val;
+      this.pagenum = val;
       this.loadData();
+      console.log(`当前页: ${val}`);
     }
+  },
+  components: {
+    ElTreeGrid
   }
 };
 </script>
@@ -97,7 +125,8 @@ export default {
 .box-card {
   height: 100%;
 }
-.cate-btn {
-  margin: 10px 0;
+.row-add {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 </style>
