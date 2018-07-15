@@ -51,7 +51,7 @@
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button plain size="mini" type="primary" icon="el-icon-edit" ></el-button>
+          <el-button plain size="mini" type="primary" icon="el-icon-edit" @click="handleShowEdit(scope.row)"></el-button>
           <el-button plain size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)"></el-button>
         </template>
       </el-table-column>
@@ -96,6 +96,19 @@
         <el-button type="primary" @click="handleAdd">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 编辑分类的对话框 -->
+    <el-dialog title="编辑商品分类" :visible.sync="editDialogForm" @closed="closed">
+      <el-form :model="addForm">
+        <el-form-item label="分类名称" label-width="100px">
+          <el-input v-model="addForm.cat_name" auto-complete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editDialogForm = false">取 消</el-button>
+        <el-button type="primary" @click="handleUpEdit">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -117,13 +130,15 @@ export default {
       // 添加分类的对话框
       addDialogForm: false,
       addForm: {
-        cat_pid: 0,
-        cat_name: '',
-        cat_level: 0
+        cat_name: ''
       },
       props: [],
       options: [],
-      selectedOptions2: []
+      selectedOptions2: [],
+      // 编辑
+      editDialogForm: false,
+      currentCatId: '',
+      currentCatName: ''
     };
   },
   created() {
@@ -225,6 +240,41 @@ export default {
         // 添加失败
         this.$message.error(msg);
       }
+    },
+    // 点击编辑分类按钮
+    async handleShowEdit(cat) {
+      this.editDialogForm = true;
+      // 记录 cat_id   cat_name
+      this.currentCatId = cat.cat_id;
+      this.currentCatName = cat.cat_name;
+      // console.log(cat);
+      this.addForm.cat_name = cat.cat_name;
+    },
+    // 编辑分类更新数据
+    async handleUpEdit () {
+      // console.log(this.addForm.cat_name);
+      const data = this.addForm;
+      const res = await this.$http.put(`categories/${this.currentCatId}`, data);
+      // console.log(res);
+      const {meta: {status, msg}} = res.data;
+      if (status === 200) {
+        // 更新成功
+        // 刷新页面
+        this.loadData();
+        // 提示
+        this.$message.success(msg);
+        // 关闭对话框
+        this.editDialogForm = false;
+      } else {
+        this.$message.error(msg);
+      }
+    },
+    // 点击取消按钮触发的回调函数
+    closed () {
+      // this.addForm = {};
+      for (let item in this.addForm) {
+        this.addForm[item] = '';
+      }
     }
   },
   components: {
@@ -234,10 +284,6 @@ export default {
 </script>
 
 <style>
-.box-card {
-  height: 100%;
-  overflow: auto;
-}
 .row-add {
   margin-top: 10px;
   margin-bottom: 10px;

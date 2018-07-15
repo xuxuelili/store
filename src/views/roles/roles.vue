@@ -203,9 +203,6 @@ export default {
 </script>
 
 <style>
-.box-card {
-  height: 100%;
-}
 .addRoles {
   margin: 10px 0;
 }
